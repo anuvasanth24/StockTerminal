@@ -19,7 +19,7 @@ import com.memsql.spark.connector.util.JDBCImplicits._
 
 object StockConsumer {
 
-  val KAFKA_BROKER = "ec2-52-13-197-44.us-west-2.compute.amazonaws.com:9092"
+  val KAFKA_BROKER = ""
   val GROUP_ID = "stock_group_id"
 
   /*
@@ -27,7 +27,7 @@ object StockConsumer {
    */
 
   def init(): SparkConf = {
-    val connInfo = MemSQLConnectionInfo("10.0.0.12", 3306, "root", "i-079ab3b619970b6b1", "information_schema")
+    val connInfo = MemSQLConnectionInfo("", 3306, "", "", "")
 
     MemSQLConnectionPool.createPool(connInfo)
     MemSQLConnectionPool.connect(connInfo)
