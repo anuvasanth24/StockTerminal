@@ -11,11 +11,19 @@ import java.io.File;
 import java.util.Random;
 
 
-/*
-Producer class for the purposes of ingesting data by the Kafka servers
+/**
+ * Producer class for the purposes of ingesting data by the Kafka servers
  */
 
 public class Producer {
+
+    /**
+     * Function mocks stock data by adding a random Integer value to a base price that is retrieved from hmap for each stock
+     * Each stock data contains symbol, price, timestamp, market cap, sector amd Industry as its fields
+     *
+     * Constants.KAFKA_SERVER public DNS and port of the servers retreived from Constants.java
+     */
+
     public void Send () throws java.lang.InterruptedException {
 
         String fileName = Constants.FILENAME_COMPANY_LIST;
@@ -24,21 +32,16 @@ public class Producer {
         File file = new File(fileName);
         File stockFile = new File(stockPriceFileName);
 
-        Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, Constants.KAFKA_SERVER);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Constants.KAFKA_KEY_SERIALIZER);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, Constants.KAFKA_VALUE_SERIALIZER);
-        KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 
         HashMap<String, Double> hmap = new HashMap();
         Random rn = new Random();
 
         int count = 0;
 
-        /*
-        stockFile line example = FB,120
-        Parsing stock file and storing symbol and its price as <key,value> pair in a hashmap
-         */
+
+        // stockFile line example = FB,120
+        // Parsing stock file and storing symbol and its price as <key,value> pair in a hashmap to be used as a base price
+
         try
         {
             Scanner stockPriceScanner = new Scanner(stockFile);
@@ -54,14 +57,18 @@ public class Producer {
             System.out.println(e.getMessage());
         }
 
+        Properties props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, Constants.KAFKA_SERVER);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Constants.KAFKA_KEY_SERIALIZER);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, Constants.KAFKA_VALUE_SERIALIZER);
+        KafkaProducer<String, String> kProducer = new KafkaProducer<String, String>(props);
 
         try {
 
             Scanner inputStream = new Scanner(file);
 
-            /*
-            Simulating additional stock data such as current time and price to make it fit for streaming data
-             */
+
+            //Simulating additional stock data such as current time and price to make it fit for streaming data
 
             while (inputStream.hasNextLine()) {
                 String line = inputStream.nextLine();
@@ -76,9 +83,9 @@ public class Producer {
                 ProducerRecord<String, String> data;
 
                 data = new ProducerRecord<String, String>("topic-stock", line);
-                producer.send(data);
+                kProducer.send(data);
                 System.out.println(data);
-                producer.flush();
+                kProducer.flush();
             }
 
             inputStream.close();
@@ -87,7 +94,7 @@ public class Producer {
             System.out.println(e.getMessage());
         }
 
-        producer.close();
+        kProducer.close();
         System.out.println("Producer flushed and closed");
     }
 

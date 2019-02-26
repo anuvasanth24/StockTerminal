@@ -22,10 +22,11 @@ object StockConsumer {
   val KAFKA_BROKER = ""
   val GROUP_ID = "stock_group_id"
 
-  /*
-   * Initialze memsql connection info and spark context.
-   */
 
+  /** Initialze memsql connection info and spark context.
+    *
+    *  @return conf:  SparkConf  Configuration set with memsql connection info such as username, password, port, database and table info
+    */
   def init(): SparkConf = {
     val connInfo = MemSQLConnectionInfo("", 3306, "", "", "")
 
@@ -52,9 +53,12 @@ object StockConsumer {
     return conf
   }
 
-  /*
-   * Calling Kafka's CreateDirectStream from within Spark streaming to consume the data ingested through Kafka
-   */
+  /** Creating DStream that listens to Kafka topic 'topic-stock'
+    *
+    *  @param ssc: StreamingContext
+    *
+    *  @return InputDStream[ConsumerRecord[String, String ] ]   DStream listening to Kafka topic
+    */
 
   def consumeKafkaStream(ssc: StreamingContext): InputDStream[ConsumerRecord[String, String]] = {
 
@@ -77,8 +81,12 @@ object StockConsumer {
 
   }
 
-
-
+  /** Converts each field that is passed in as string to the desired data type
+    *
+    *  @param line: List[String] Streaming data that has been slpit into fields
+    *
+    *  @return Row: All fields in their correct data types as a Row type
+    */
   def row(line: List[String]): Row = {
 
     //converting each field that is passed in as string to the desired data type
@@ -86,12 +94,15 @@ object StockConsumer {
   }
 
 
-
+  /** Runs a SparkStreaming job listening to Kafka topic "topic-stock"
+    * The Kafka topic streams in data; this job processes this data
+    * and saves the results to memsql.
+    */
   def main(args: Array[String]): Unit = {
 
-    /*
-    *Initialize memsql connection info
-     */
+
+    //Initialize memsql connection info
+
     val sconf = init()
 
 
