@@ -17,27 +17,14 @@ import java.util.Random;
 
 public class Producer {
 
-    /**
-     * Function mocks stock data by adding a random Integer value to a base price that is retrieved from hmap for each stock
-     * Each stock data contains symbol, price, timestamp, market cap, sector amd Industry as its fields
-     *
-     * Constants.KAFKA_SERVER public DNS and port of the servers retreived from Constants.java
-     */
 
-    public void Send () throws java.lang.InterruptedException {
 
-        String fileName = Constants.FILENAME_COMPANY_LIST;
+    private HashMap<String, Double> ConstructStockBasePrice(){
+
         String stockPriceFileName = Constants.FILENAME_STOCK_PRICE;
-
-        File file = new File(fileName);
         File stockFile = new File(stockPriceFileName);
 
-
         HashMap<String, Double> hmap = new HashMap();
-        Random rn = new Random();
-
-        int count = 0;
-
 
         // stockFile line example = FB,120
         // Parsing stock file and storing symbol and its price as <key,value> pair in a hashmap to be used as a base price
@@ -57,6 +44,27 @@ public class Producer {
             System.out.println(e.getMessage());
         }
 
+        return hmap;
+    }
+
+    /**
+     * Function mocks stock data by adding a random Integer value to a base price that is retrieved from hmap for each stock
+     * Each stock data contains symbol, price, timestamp, market cap, sector amd Industry as its fields
+     *
+     * Constants.KAFKA_SERVER public DNS and port of the servers retreived from Constants.java
+     */
+    public void Send () throws java.lang.InterruptedException {
+
+        String fileName = Constants.FILENAME_COMPANY_LIST;
+
+        File file = new File(fileName);
+
+        Random rn = new Random();
+
+        //constructing stock base price hashmap
+        HashMap<String, Double>  baseHMap = ConstructStockBasePrice();
+
+        //Kafka Congifuration
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, Constants.KAFKA_SERVER);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Constants.KAFKA_KEY_SERIALIZER);
@@ -74,10 +82,10 @@ public class Producer {
                 String line = inputStream.nextLine();
 
                 String[] splitLine = line.split(",");
-                double i = rn.nextInt(50);
+                double priceAdd = rn.nextInt(50);
 
                 //simulating price of each stock based on actual stock price from the above hashmap
-                String price = String.valueOf(hmap.get(splitLine[0]) + rn.nextInt(25));
+                String price = String.valueOf(baseHMap.get(splitLine[0]) + priceAdd);
                 //adding price and current time for each stock symbol
                 line = line + "," + '"' + price + '"' + "," + '"' + LocalDateTime.now().toString() + '"';
                 ProducerRecord<String, String> data;
